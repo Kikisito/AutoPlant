@@ -19,7 +19,6 @@ public final class AutoPlant extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        System.out.println("The plugin has started...");
         getServer().getPluginManager().registerEvents(new Crops(), this);
         Objects.requireNonNull(getCommand("autoplant")).setExecutor(new ConfigReload());
 
@@ -54,10 +53,5 @@ public final class AutoPlant extends JavaPlugin {
             throw new RuntimeException("'AutoPlant' not found. 'AutoPlant' plugin disabled?");
         }
         return ((AutoPlant) plugin);
-    }
-
-    @Override
-    public void onDisable() {
-        System.out.println("The plugin is shutting down...");
     }
 }

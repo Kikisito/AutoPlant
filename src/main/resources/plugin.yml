@@ -9,3 +9,8 @@ commands:
   autoplant:
     description: Allows user to reload the plugin's config file.
     usage: /<command>
+permissions:
+  autoplant.bypass:
+    default: false
+  autoplant.reload:
+    default: op
