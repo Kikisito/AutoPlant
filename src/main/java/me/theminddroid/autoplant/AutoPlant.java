@@ -34,7 +34,7 @@ public final class AutoPlant extends JavaPlugin {
     public void onLoad() {
         FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
         try {
-            StateFlag flag = new StateFlag("auto-plant", false);
+            StateFlag flag = new StateFlag("auto-plant", true);
             registry.register(flag);
             AUTO_PLANT = flag;
         } catch (FlagConflictException e) {
