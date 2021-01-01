@@ -3,11 +3,8 @@
 
 #*It is recommended that you keep the original messages for title formatting reasons.
 
-#This field allows you to change the message when a sapling is broken:
-Sapling: "&2That tree isn't fully grown yet!"
-
 #This field allows you to change the message when a crop is broken:
-Crop: "&2That crop isn't fully grown yet!"
+#Crop: "&2That crop isn't fully grown yet!"
 
 #Once you have edited a title, be sure to reload the config using '/autoplant reload'.
 #If you have any issue with the config file, you can delete the file, restart the server, and a new one will generated.

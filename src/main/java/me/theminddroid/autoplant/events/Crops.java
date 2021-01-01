@@ -1,6 +1,5 @@
 package me.theminddroid.autoplant.events;
 
-import com.google.common.collect.ImmutableMap;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.LocalPlayer;
@@ -23,34 +22,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class Crops implements Listener {
 
     private final Set<Material> cropList = EnumSet.of(Material.WHEAT, Material.POTATOES, Material.CARROTS, Material.COCOA, Material.BEETROOTS, Material.NETHER_WART);
-    private final Set<Material> soil = EnumSet.of(Material.DIRT, Material.WARPED_NYLIUM, Material.CRIMSON_NYLIUM);
-
-    private final Map<Material, Material> treeMaterials = new ImmutableMap.Builder<Material, Material>()
-            .put(Material.OAK_LOG, Material.OAK_SAPLING)
-            .put(Material.BIRCH_LOG, Material.BIRCH_SAPLING)
-            .put(Material.SPRUCE_LOG, Material.SPRUCE_SAPLING)
-            .put(Material.ACACIA_LOG, Material.ACACIA_SAPLING)
-            .put(Material.DARK_OAK_LOG, Material.DARK_OAK_SAPLING)
-            .put(Material.JUNGLE_LOG, Material.JUNGLE_SAPLING)
-            .put(Material.CRIMSON_STEM, Material.CRIMSON_FUNGUS)
-            .put(Material.WARPED_STEM, Material.WARPED_FUNGUS)
-            .put(Material.STRIPPED_BIRCH_LOG, Material.BIRCH_SAPLING)
-            .put(Material.STRIPPED_OAK_LOG, Material.OAK_SAPLING)
-            .put(Material.STRIPPED_SPRUCE_LOG, Material.SPRUCE_SAPLING)
-            .put(Material.STRIPPED_ACACIA_LOG, Material.ACACIA_SAPLING)
-            .put(Material.STRIPPED_DARK_OAK_LOG, Material.DARK_OAK_SAPLING)
-            .put(Material.STRIPPED_JUNGLE_LOG, Material.JUNGLE_SAPLING)
-            .put(Material.STRIPPED_CRIMSON_STEM, Material.CRIMSON_FUNGUS)
-            .put(Material.STRIPPED_WARPED_STEM, Material.WARPED_FUNGUS)
-            .build();
-    private final Set<Material> saplings = new HashSet<>(treeMaterials.values());
 
     @EventHandler
     public void cropBroken(BlockBreakEvent event) {
@@ -70,57 +46,25 @@ public class Crops implements Listener {
         ApplicableRegionSet set = regions.getApplicableRegions(worldGuardLocation.toVector().toBlockPoint());
         LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
 
-        if (!set.testState(localPlayer, AutoPlant.AUTO_PLANT)) {
-            Bukkit.getLogger().finer("Player not in autoplant region.");
-            return;
-        }
-
-        if (player.hasPermission("autoplant.bypass")) {
-            Bukkit.getLogger().finer("Player has autoplant bypass.");
-            return;
-        }
-
-        Bukkit.getLogger().finer("Crops triggered");
+        // Disabled in region
+        if (!set.testState(localPlayer, AutoPlant.AUTO_PLANT)) return;
+        if (player.hasPermission("autoplant.bypass")) return;
 
         handleCrop(event, player, block);
-        handleTree(block);
-        handleSapling(event, player, block);
-    }
-
-    private void handleSapling(BlockBreakEvent event, Player player, Block block) {
-        String saplingMessage = AutoPlant.getPlugin(AutoPlant.class).getConfig().getString("Sapling");
-        Material material = block.getType();
-
-        if (saplings.contains(material)) {
-            event.setCancelled(true);
-            assert saplingMessage != null;
-            player.sendTitle("", ChatColor.translateAlternateColorCodes('&', saplingMessage), 10, 30,10);
-        }
     }
 
 
-    private void handleCrop(BlockBreakEvent event, Player player, Block block) {
-        String cropMessage = AutoPlant.getPlugin(AutoPlant.class).getConfig().getString("Crop");
+    private void handleCrop(BlockBreakEvent event , Player player, Block block) {
         BlockData blockData = block.getBlockData();
         Material material = block.getType();
 
-        if (!(blockData instanceof Ageable)) {
-            return;
-        }
-
-        if (!cropList.contains(material)) {
-            return;
-        }
-
-        Bukkit.getLogger().finer("Handling crop.");
+        if(!(blockData instanceof Ageable)) return;
+        if(!cropList.contains(material)) return;
+        if(!player.getInventory().getItemInMainHand().getType().name().endsWith("_HOE")) return;
 
         Ageable age = (Ageable) blockData;
-
-        if (age.getAge() != age.getMaximumAge()) {
-
+        if(age.getAge() != age.getMaximumAge()) {
             event.setCancelled(true);
-            assert cropMessage != null;
-            player.sendTitle("", ChatColor.translateAlternateColorCodes('&', cropMessage), 10, 30,10);
             return;
         }
 
@@ -136,23 +80,5 @@ public class Crops implements Listener {
             }
             block.setBlockData(newBlockData);
         }, 1);
-    }
-
-
-    private void handleTree(Block block) {
-        Material material = block.getType();
-
-        if (!(treeMaterials.containsKey(material))) {
-            Bukkit.getLogger().finer("Tree not found " + material);
-            return;
-        }
-
-        Bukkit.getLogger().finer("Handling tree.");
-
-        if (!soil.contains((block.getLocation().subtract(0.0, 1.0, 0.0).getBlock().getType()))) {
-            Bukkit.getLogger().finer("Log not on dirt.");
-            return;
-        }
-        Bukkit.getScheduler().runTaskLater(AutoPlant.getInstance(), () -> block.setType(treeMaterials.get(material)), 1);
     }
 }
